@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
+import { useComments, useAddComment } from '../integrations/supabase/hooks/comments';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,6 +19,7 @@ const Index = () => {
 
   const { data: floodReports, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
+  const addCommentMutation = useAddComment();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -114,6 +116,60 @@ const Index = () => {
     }
   };
 
+  const CommentSection = ({ floodReportId }) => {
+    const { data: comments } = useComments(floodReportId);
+    const [newComment, setNewComment] = useState('');
+    const [userName, setUserName] = useState('');
+
+    const handleAddComment = () => {
+      if (newComment) {
+        addCommentMutation.mutate({
+          flood_report_id: floodReportId,
+          content: newComment,
+          user_name: userName || 'Anonymous'
+        }, {
+          onSuccess: () => {
+            setNewComment('');
+            setUserName('');
+            toast.success('Comment added successfully');
+          },
+          onError: (error) => {
+            console.error('Error adding comment:', error);
+            toast.error('Failed to add comment');
+          }
+        });
+      }
+    };
+
+    return (
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold mb-2">Comments</h3>
+        {comments && comments.map(comment => (
+          <div key={comment.id} className="bg-gray-100 p-2 mb-2 rounded">
+            <p>{comment.content}</p>
+            <p className="text-sm text-gray-500">
+              By: {comment.user_name} | {new Date(comment.created_at).toLocaleString()}
+            </p>
+          </div>
+        ))}
+        <Input
+          type="text"
+          placeholder="Your name"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          className="mb-2"
+        />
+        <Textarea
+          placeholder="Add a comment"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          className="mb-2"
+        />
+        <Button onClick={handleAddComment}>Add Comment</Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
@@ -179,6 +235,7 @@ const Index = () => {
               <p className="text-sm text-gray-500">
                 {new Date(report.created_at).toLocaleString()}
               </p>
+              <CommentSection floodReportId={report.id} />
             </div>
           ))}
         </div>
