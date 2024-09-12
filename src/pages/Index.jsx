@@ -11,6 +11,7 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newReportedBy, setNewReportedBy] = useState('');
+  const [newLocation, setNewLocation] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -32,6 +33,15 @@ const Index = () => {
 
   const uploadImage = async (file) => {
     try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets.some(bucket => bucket.name === 'flood-images');
+      
+      if (!bucketExists) {
+        console.error('Bucket "flood-images" does not exist');
+        toast.error('Image upload failed: Storage bucket not found');
+        return null;
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -44,17 +54,17 @@ const Index = () => {
         return null;
       }
 
-      const { data: { publicUrl }, error: urlError } = supabase.storage
+      const { data } = supabase.storage
         .from('flood-images')
         .getPublicUrl(fileName);
 
-      if (urlError) {
-        console.error('Error getting public URL:', urlError);
+      if (!data || !data.publicUrl) {
+        console.error('Error getting public URL');
         toast.error('Error processing image');
         return null;
       }
 
-      return publicUrl;
+      return data.publicUrl;
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('An unexpected error occurred');
@@ -63,7 +73,7 @@ const Index = () => {
   };
 
   const handleAddNews = async () => {
-    if (newTitle && newContent) {
+    if (newTitle && newContent && newLocation) {
       let imageUrl = null;
       if (selectedFile) {
         imageUrl = await uploadImage(selectedFile);
@@ -76,6 +86,7 @@ const Index = () => {
         title: newTitle,
         content: newContent,
         reported_by: newReportedBy,
+        location: newLocation,
         image_url: imageUrl,
       };
 
@@ -84,6 +95,7 @@ const Index = () => {
           setNewTitle('');
           setNewContent('');
           setNewReportedBy('');
+          setNewLocation('');
           setSelectedFile(null);
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -98,7 +110,7 @@ const Index = () => {
         }
       });
     } else {
-      toast.error('Please fill in the title and content');
+      toast.error('Please fill in the title, content, and location');
     }
   };
 
@@ -106,7 +118,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">
-          Flood News: Water Flood, Chiang Rai, Thailand
+          น้ำท่วมเชียงราย 2024
         </h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -127,6 +139,12 @@ const Index = () => {
                 placeholder="News Content"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
+              />
+              <Input
+                type="text"
+                placeholder="Location"
+                value={newLocation}
+                onChange={(e) => setNewLocation(e.target.value)}
               />
               <Input
                 type="text"
@@ -152,6 +170,7 @@ const Index = () => {
                 <img src={report.image_url} alt={report.title} className="w-full h-48 object-cover mb-4 rounded" />
               )}
               <p className="text-sm text-gray-500">
+                Location: {report.location || 'Not specified'} | 
                 Reported by: {report.reported_by || 'Anonymous'} | 
                 {new Date(report.created_at).toLocaleString()}
               </p>
