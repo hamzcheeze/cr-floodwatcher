@@ -126,29 +126,29 @@ const Index = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Flood Report</DialogTitle>
+              <DialogTitle>เพิ่มข้อมูล</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
                 type="text"
-                placeholder="Report Title"
+                placeholder="หัวข้อ"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
               />
               <Textarea
-                placeholder="Report Content"
+                placeholder="รายละเอียด"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
               />
               <Input
                 type="text"
-                placeholder="Location"
+                placeholder="สถานที่"
                 value={newLocation}
                 onChange={(e) => setNewLocation(e.target.value)}
               />
               <Input
                 type="text"
-                placeholder="Reported By"
+                placeholder="โดย"
                 value={newReportedBy}
                 onChange={(e) => setNewReportedBy(e.target.value)}
               />
@@ -156,8 +156,9 @@ const Index = () => {
                 type="file"
                 onChange={handleFileChange}
                 ref={fileInputRef}
+                placeholder="อัพโหลดรูปภาพ"
               />
-              <Button onClick={handleAddNews}>Submit Report</Button>
+              <Button onClick={handleAddNews}>Report</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -170,10 +171,10 @@ const Index = () => {
                 <img src={report.image_url} alt={report.title} className="w-full h-48 object-cover mb-4 rounded" />
               )}
               <p className="text-sm text-gray-500">
-                Location: {report.location || 'Not specified'}
+                สถานที่: {report.location || 'Not specified'}
               </p>
               <p className="text-sm text-gray-500">
-                Reported by: {report.reported_by || 'Anonymous'}
+                จาก: {report.reported_by || 'Anonymous'}
               </p>
               <p className="text-sm text-gray-500">
                 {new Date(report.created_at).toLocaleString()}
