@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { supabase } from '../integrations/supabase/supabase';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [newTitle, setNewTitle] = useState('');
@@ -17,7 +18,7 @@ const Index = () => {
   const { data: floodReports, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       refetch();
     }, 10000);
@@ -30,22 +31,35 @@ const Index = () => {
   };
 
   const uploadImage = async (file) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const { data, error } = await supabase.storage
-      .from('flood-images')
-      .upload(fileName, file);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('flood-images')
+        .upload(fileName, file);
 
-    if (error) {
-      console.error('Error uploading file:', error);
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        toast.error('Error uploading image');
+        return null;
+      }
+
+      const { data: { publicUrl }, error: urlError } = supabase.storage
+        .from('flood-images')
+        .getPublicUrl(fileName);
+
+      if (urlError) {
+        console.error('Error getting public URL:', urlError);
+        toast.error('Error processing image');
+        return null;
+      }
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred');
       return null;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('flood-images')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
   };
 
   const handleAddNews = async () => {
@@ -53,6 +67,9 @@ const Index = () => {
       let imageUrl = null;
       if (selectedFile) {
         imageUrl = await uploadImage(selectedFile);
+        if (!imageUrl) {
+          return; // Exit if image upload failed
+        }
       }
 
       const newReport = {
@@ -73,8 +90,15 @@ const Index = () => {
           }
           setIsOpen(false);
           refetch();
+          toast.success('News added successfully');
+        },
+        onError: (error) => {
+          console.error('Error adding news:', error);
+          toast.error('Failed to add news');
         }
       });
+    } else {
+      toast.error('Please fill in the title and content');
     }
   };
 
