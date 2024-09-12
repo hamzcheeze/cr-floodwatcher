@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { supabase } from '../integrations/supabase/supabase';
 
 const Index = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newReportedBy, setNewReportedBy] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { data: floodReports, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
@@ -21,20 +25,53 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  const handleAddNews = () => {
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
+  const uploadImage = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const { data, error } = await supabase.storage
+      .from('flood-images')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Error uploading file:', error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('flood-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
+
+  const handleAddNews = async () => {
     if (newTitle && newContent) {
+      let imageUrl = null;
+      if (selectedFile) {
+        imageUrl = await uploadImage(selectedFile);
+      }
+
       const newReport = {
         title: newTitle,
         content: newContent,
         reported_by: newReportedBy,
-        image_url: newImageUrl,
+        image_url: imageUrl,
       };
+
       addFloodReportMutation.mutate(newReport, {
         onSuccess: () => {
           setNewTitle('');
           setNewContent('');
           setNewReportedBy('');
-          setNewImageUrl('');
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          setIsOpen(false);
           refetch();
         }
       });
@@ -47,38 +84,41 @@ const Index = () => {
         <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">
           Flood News: Water Flood, Chiang Rai, Thailand
         </h1>
-        <div className="mb-8 space-y-4">
-          <Input
-            type="text"
-            placeholder="News Title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            className="w-full"
-          />
-          <Textarea
-            placeholder="News Content"
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            className="w-full"
-          />
-          <Input
-            type="text"
-            placeholder="Reported By"
-            value={newReportedBy}
-            onChange={(e) => setNewReportedBy(e.target.value)}
-            className="w-full"
-          />
-          <Input
-            type="text"
-            placeholder="Image URL"
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            className="w-full"
-          />
-          <Button onClick={handleAddNews} className="w-full">
-            Add News
-          </Button>
-        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-8 w-full">Add News</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Flood Report</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                type="text"
+                placeholder="News Title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+              />
+              <Textarea
+                placeholder="News Content"
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+              />
+              <Input
+                type="text"
+                placeholder="Reported By"
+                value={newReportedBy}
+                onChange={(e) => setNewReportedBy(e.target.value)}
+              />
+              <Input
+                type="file"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+              />
+              <Button onClick={handleAddNews}>Submit News</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <div className="space-y-4">
           {floodReports && floodReports.map(report => (
             <div key={report.id} className="bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg">
