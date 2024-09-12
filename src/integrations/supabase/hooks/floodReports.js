@@ -27,7 +27,7 @@ Note:
 
 export const useFloodReports = () => useQuery({
     queryKey: ['flood_reports'],
-    queryFn: () => fromSupabase(supabase.from('flood_reports').select('*')),
+    queryFn: () => fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false })),
 });
 
 export const useFloodReport = (id) => useQuery({
