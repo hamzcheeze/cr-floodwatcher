@@ -102,11 +102,11 @@ const Index = () => {
           }
           setIsOpen(false);
           refetch();
-          toast.success('News added successfully');
+          toast.success('Report added successfully');
         },
         onError: (error) => {
-          console.error('Error adding news:', error);
-          toast.error('Failed to add news');
+          console.error('Error adding report:', error);
+          toast.error('Failed to add report');
         }
       });
     } else {
@@ -118,11 +118,11 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">
-          น้ำท่วมเชียงราย 2024
+          รายงานข่าวน้ำท่วมเชียงราย 2567
         </h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="mb-8 w-full">Add News</Button>
+            <Button className="mb-8 w-full">Report</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -131,12 +131,12 @@ const Index = () => {
             <div className="space-y-4">
               <Input
                 type="text"
-                placeholder="News Title"
+                placeholder="Report Title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
               />
               <Textarea
-                placeholder="News Content"
+                placeholder="Report Content"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
               />
@@ -157,7 +157,7 @@ const Index = () => {
                 onChange={handleFileChange}
                 ref={fileInputRef}
               />
-              <Button onClick={handleAddNews}>Submit News</Button>
+              <Button onClick={handleAddNews}>Submit Report</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -170,8 +170,12 @@ const Index = () => {
                 <img src={report.image_url} alt={report.title} className="w-full h-48 object-cover mb-4 rounded" />
               )}
               <p className="text-sm text-gray-500">
-                Location: {report.location || 'Not specified'} | 
-                Reported by: {report.reported_by || 'Anonymous'} | 
+                Location: {report.location || 'Not specified'}
+              </p>
+              <p className="text-sm text-gray-500">
+                Reported by: {report.reported_by || 'Anonymous'}
+              </p>
+              <p className="text-sm text-gray-500">
                 {new Date(report.created_at).toLocaleString()}
               </p>
             </div>
