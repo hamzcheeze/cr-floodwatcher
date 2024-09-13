@@ -19,7 +19,7 @@ const Index = () => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  const { data: floodReportsData, refetch } = useFloodReports();
+  const { data: floodReportsData, isLoading, error, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
   const handleFileChange = (event) => {
@@ -109,6 +109,14 @@ const Index = () => {
     }
   };
 
+  if (isLoading) {
+    return <div className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">Error: {error.message}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
@@ -158,7 +166,7 @@ const Index = () => {
           </DialogContent>
         </Dialog>
         <div className="space-y-4">
-          {floodReportsData && floodReportsData.reports.map(report => (
+          {floodReportsData && floodReportsData.reports && floodReportsData.reports.map(report => (
             <div key={report.id} className="bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-2 text-blue-700">{report.title}</h2>
               <p className="text-gray-600 mb-4">{report.content}</p>
