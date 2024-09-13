@@ -7,27 +7,14 @@ const fromSupabase = async (query) => {
     return data;
 };
 
-/*
-### flood_reports
-
-| name        | type                     | format    | required |
-|-------------|--------------------------|-----------|----------|
-| id          | integer                  | bigint    | true     |
-| created_at  | string                   | timestamp | true     |
-| updated_at  | string                   | timestamp | true     |
-| title       | string                   | text      | true     |
-| content     | string                   | text      | true     |
-| reported_by | string                   | text      | false    |
-| image_url   | string                   | text      | false    |
-
-Note: 
-- id is the Primary Key
-- created_at and updated_at have default values of now()
-*/
-
 export const useFloodReports = () => useQuery({
     queryKey: ['flood_reports'],
-    queryFn: () => fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false })),
+    queryFn: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const reports = await fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false }));
+        const isAdmin = user && user.email === 'admin@example.com'; // Replace with your admin email
+        return { reports, isAdmin };
+    },
 });
 
 export const useFloodReport = (id) => useQuery({

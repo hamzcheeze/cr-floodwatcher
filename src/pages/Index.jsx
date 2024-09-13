@@ -8,6 +8,7 @@ import { supabase } from '../integrations/supabase/supabase';
 import { toast } from 'sonner';
 import CommentSection from '../components/CommentSection';
 import CommentForm from '../components/CommentForm';
+import EditReportDialog from '../components/EditReportDialog';
 
 const Index = () => {
   const [newTitle, setNewTitle] = useState('');
@@ -18,7 +19,7 @@ const Index = () => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  const { data: floodReports, refetch } = useFloodReports();
+  const { data: floodReportsData, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
   const handleFileChange = (event) => {
@@ -157,7 +158,7 @@ const Index = () => {
           </DialogContent>
         </Dialog>
         <div className="space-y-4">
-          {floodReports && floodReports.map(report => (
+          {floodReportsData && floodReportsData.reports.map(report => (
             <div key={report.id} className="bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-2 text-blue-700">{report.title}</h2>
               <p className="text-gray-600 mb-4">{report.content}</p>
@@ -173,6 +174,9 @@ const Index = () => {
               <p className="text-sm text-gray-500">
                 {new Date(report.created_at).toLocaleString()}
               </p>
+              {floodReportsData.isAdmin && (
+                <EditReportDialog report={report} onClose={refetch} />
+              )}
               <CommentSection reportId={report.id} />
               <CommentForm reportId={report.id} />
             </div>
