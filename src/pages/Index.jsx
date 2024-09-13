@@ -1,12 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
-import { useComments, useAddComment } from '../integrations/supabase/hooks/comments';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { supabase } from '../integrations/supabase/supabase';
 import { toast } from 'sonner';
+import CommentSection from '../components/CommentSection';
+import CommentForm from '../components/CommentForm';
 
 const Index = () => {
   const [newTitle, setNewTitle] = useState('');
@@ -19,15 +20,6 @@ const Index = () => {
 
   const { data: floodReports, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
-  const addCommentMutation = useAddComment();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [refetch]);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -116,61 +108,6 @@ const Index = () => {
     }
   };
 
-  const CommentSection = ({ reportId }) => {
-    const { data: comments, isLoading, isError } = useComments(reportId);
-    const [newComment, setNewComment] = useState('');
-    const [newCommentBy, setNewCommentBy] = useState('');
-
-    const handleAddComment = () => {
-      if (newComment) {
-        addCommentMutation.mutate({
-          detail: newComment,
-          by: newCommentBy || 'Anonymous',
-          reports_id: reportId
-        }, {
-          onSuccess: () => {
-            setNewComment('');
-            setNewCommentBy('');
-            toast.success('Comment added successfully');
-          },
-          onError: (error) => {
-            console.error('Error adding comment:', error);
-            toast.error('Failed to add comment');
-          }
-        });
-      }
-    };
-
-    if (isLoading) return <p>Loading comments...</p>;
-    if (isError) return <p>Error loading comments</p>;
-
-    return (
-      <div className="mt-4">
-        <h3 className="text-lg font-semibold mb-2">Comments</h3>
-        {comments && comments.map(comment => (
-          <div key={comment.id} className="bg-gray-100 p-2 mb-2 rounded">
-            <p>{comment.detail}</p>
-            <p className="text-sm text-gray-500">By: {comment.by || 'Anonymous'}</p>
-          </div>
-        ))}
-        <Input
-          type="text"
-          placeholder="Your name"
-          value={newCommentBy}
-          onChange={(e) => setNewCommentBy(e.target.value)}
-          className="mb-2"
-        />
-        <Textarea
-          placeholder="Add a comment"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="mb-2"
-        />
-        <Button onClick={handleAddComment}>Add Comment</Button>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
@@ -237,6 +174,7 @@ const Index = () => {
                 {new Date(report.created_at).toLocaleString()}
               </p>
               <CommentSection reportId={report.id} />
+              <CommentForm reportId={report.id} />
             </div>
           ))}
         </div>

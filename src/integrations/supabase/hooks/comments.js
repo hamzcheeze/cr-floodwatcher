@@ -7,21 +7,6 @@ const fromSupabase = async (query) => {
     return data;
 };
 
-/*
-### comments
-
-| name       | type                     | format    | required |
-|------------|--------------------------|-----------|----------|
-| id         | integer                  | bigint    | true     |
-| created_at | string                   | timestamp | true     |
-| detail     | string                   | text      | true     |
-| by         | string                   | text      | false    |
-| reports_id | integer                  | bigint    | true     |
-
-Foreign Key Relationships:
-- reports_id references flood_reports.id
-*/
-
 export const useComments = (reportId) => useQuery({
     queryKey: ['comments', reportId],
     queryFn: () => fromSupabase(
@@ -31,6 +16,7 @@ export const useComments = (reportId) => useQuery({
             .eq('reports_id', reportId)
             .order('created_at', { ascending: true })
     ),
+    refetchInterval: 10000, // Refetch every 10 seconds
 });
 
 export const useAddComment = () => {
