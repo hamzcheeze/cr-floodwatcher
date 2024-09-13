@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '../integrations/supabase/supabase';
 import { toast } from 'sonner';
 import FloodReportItem from '../components/FloodReportItem';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [newTitle, setNewTitle] = useState('');
@@ -15,21 +17,12 @@ const Index = () => {
   const [newLocation, setNewLocation] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [userRole, setUserRole] = useState('user');
   const fileInputRef = useRef(null);
+  const { userRole, logout } = useAuth();
+  const navigate = useNavigate();
 
   const { data: floodReportsData, isLoading, error, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
-
-  useEffect(() => {
-    const checkUserRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.email === 'admin@example.com') {
-        setUserRole('admin');
-      }
-    };
-    checkUserRole();
-  }, []);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -118,6 +111,11 @@ const Index = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   if (isLoading) {
     return <div className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">Loading...</div>;
   }
@@ -129,10 +127,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">
-          รายงานข่าวน้ำท่วมเชียงราย 2567
-        </h1>
-        <p className="text-center mb-4">Your role: {userRole}</p>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-blue-800">
+            รายงานข่าวน้ำท่วมเชียงราย 2567
+          </h1>
+          <div>
+            <p className="text-right mb-2">Role: {userRole}</p>
+            <Button onClick={handleLogout}>Logout</Button>
+          </div>
+        </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="mb-8 w-full">Report</Button>
