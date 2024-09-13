@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useFloodReports, useAddFloodReport } from '../integrations/supabase/hooks/floodReports';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,10 +17,21 @@ const Index = () => {
   const [newLocation, setNewLocation] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [userRole, setUserRole] = useState('user');
   const fileInputRef = useRef(null);
 
   const { data: floodReportsData, isLoading, error, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && user.email === 'admin@example.com') {
+        setUserRole('admin');
+      }
+    };
+    checkUserRole();
+  }, []);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -123,6 +134,7 @@ const Index = () => {
         <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">
           รายงานข่าวน้ำท่วมเชียงราย 2567
         </h1>
+        <p className="text-center mb-4">Your role: {userRole}</p>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="mb-8 w-full">Report</Button>
@@ -182,8 +194,13 @@ const Index = () => {
               <p className="text-sm text-gray-500">
                 {new Date(report.created_at).toLocaleString()}
               </p>
-              {floodReportsData.isAdmin && (
-                <EditReportDialog report={report} onClose={refetch} />
+              {userRole === 'admin' && (
+                <Button onClick={() => setIsOpen(true)} className="mt-2 bg-yellow-500 hover:bg-yellow-600">
+                  Edit Report
+                </Button>
+              )}
+              {isOpen && userRole === 'admin' && (
+                <EditReportDialog report={report} onClose={() => { setIsOpen(false); refetch(); }} />
               )}
               <CommentSection reportId={report.id} />
               <CommentForm reportId={report.id} />
