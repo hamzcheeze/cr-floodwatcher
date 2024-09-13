@@ -19,6 +19,7 @@ const fromSupabase = async (query) => {
 | content     | string                   | text      | true     |
 | reported_by | string                   | text      | false    |
 | image_url   | string                   | text      | false    |
+| location    | string                   | text      | false    |
 
 Note: 
 - id is the Primary Key
