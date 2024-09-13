@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import CommentSection from './CommentSection';
 import CommentForm from './CommentForm';
 import EditReportDialog from './EditReportDialog';
+import { useAuth } from '../context/AuthContext';
 
-const FloodReportItem = ({ report, userRole, onEdit, refetch }) => {
+const FloodReportItem = ({ report, onEdit, refetch }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { userRole } = useAuth();
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg">

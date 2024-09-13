@@ -133,7 +133,7 @@ const Index = () => {
           </h1>
           <div>
             <p className="text-right mb-2">Role: {userRole}</p>
-            <Button onClick={handleLogout}>Logout</Button>
+            {userRole === 'admin' && <Button onClick={handleLogout}>Logout</Button>}
           </div>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -183,7 +183,6 @@ const Index = () => {
             <FloodReportItem
               key={report.id}
               report={report}
-              userRole={userRole}
               onEdit={() => setIsOpen(true)}
               refetch={refetch}
             />

@@ -3,7 +3,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState('user');
+  const [userRole, setUserRole] = useState('guest');
 
   useEffect(() => {
     const storedRole = localStorage.getItem('userRole');
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setUserRole('user');
+    setUserRole('guest');
     localStorage.removeItem('userRole');
   };
 
