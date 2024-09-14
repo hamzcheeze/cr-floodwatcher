@@ -174,6 +174,7 @@ const Index = () => {
               key={report.id}
               report={report}
               onEdit={() => setIsOpen(true)}
+              refetch={() => {}} // This is no longer needed due to real-time updates
             />
           ))}
         </div>
