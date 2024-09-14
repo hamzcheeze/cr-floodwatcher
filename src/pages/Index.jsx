@@ -38,18 +38,24 @@ const Index = () => {
 
       if (uploadError) {
         console.error('Error uploading file:', uploadError);
-        toast.error('Error uploading image');
+        toast.error(`Error uploading image: ${uploadError.message}`);
         return null;
       }
 
-      const { data } = supabase.storage
+      const { data, error: urlError } = await supabase.storage
         .from('flood-images')
         .getPublicUrl(fileName);
+
+      if (urlError) {
+        console.error('Error getting public URL:', urlError);
+        toast.error(`Error getting image URL: ${urlError.message}`);
+        return null;
+      }
 
       return data.publicUrl;
     } catch (error) {
       console.error('Unexpected error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(`An unexpected error occurred: ${error.message}`);
       return null;
     }
   };
