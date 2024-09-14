@@ -32,7 +32,10 @@ const Index = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
+      const { data: buckets } = await supabase.storage.listBuckets();
+      console.log('Available buckets:', buckets.map(b => b.name));
+
+      const { data, error: uploadError } = await supabase.storage
         .from('flood-images')
         .upload(fileName, file);
 
@@ -42,7 +45,7 @@ const Index = () => {
         return null;
       }
 
-      const { data, error: urlError } = await supabase.storage
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('flood-images')
         .getPublicUrl(fileName);
 
@@ -52,7 +55,7 @@ const Index = () => {
         return null;
       }
 
-      return data.publicUrl;
+      return urlData.publicUrl;
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error(`An unexpected error occurred: ${error.message}`);
