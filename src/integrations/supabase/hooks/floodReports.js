@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
+import { useEffect } from 'react';
 
 const fromSupabase = async (query) => {
     const { data, error } = await query;
@@ -7,26 +8,35 @@ const fromSupabase = async (query) => {
     return data;
 };
 
-/*
-### flood_reports
+export const useFloodReports = () => {
+    const queryClient = useQueryClient();
 
-| name        | type                     | format    | required |
-|-------------|--------------------------|-----------|----------|
-| id          | int8                     | number    | true     |
-| created_at  | timestamp with time zone | string    | true     |
-| updated_at  | timestamp with time zone | string    | true     |
-| title       | text                     | string    | true     |
-| content     | text                     | string    | true     |
-| reported_by | text                     | string    | false    |
-| image_url   | text                     | string    | false    |
-| location    | text                     | string    | false    |
+    const query = useQuery({
+        queryKey: ['flood_reports'],
+        queryFn: () => fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false })),
+    });
 
-*/
+    useEffect(() => {
+        const subscription = supabase
+            .channel('flood_reports_changes')
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'flood_reports' },
+                (payload) => {
+                    queryClient.setQueryData(['flood_reports'], (oldData) => {
+                        if (!oldData) return [payload.new];
+                        return [payload.new, ...oldData];
+                    });
+                }
+            )
+            .subscribe();
 
-export const useFloodReports = () => useQuery({
-    queryKey: ['flood_reports'],
-    queryFn: () => fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false })),
-});
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [queryClient]);
+
+    return query;
+};
 
 export const useFloodReport = (id) => useQuery({
     queryKey: ['flood_reports', id],

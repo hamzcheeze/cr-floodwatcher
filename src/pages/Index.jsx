@@ -21,7 +21,7 @@ const Index = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
 
-  const { data: floodReports, isLoading, error, refetch } = useFloodReports();
+  const { data: floodReports, isLoading, error } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
   const handleFileChange = (event) => {
@@ -32,9 +32,6 @@ const Index = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const { data: buckets } = await supabase.storage.listBuckets();
-      console.log('Available buckets:', buckets.map(b => b.name));
-
       const { data, error: uploadError } = await supabase.storage
         .from('flood-images')
         .upload(fileName, file);
@@ -92,7 +89,6 @@ const Index = () => {
             fileInputRef.current.value = '';
           }
           setIsOpen(false);
-          refetch();
           toast.success('Report added successfully');
         },
         onError: (error) => {
@@ -178,7 +174,6 @@ const Index = () => {
               key={report.id}
               report={report}
               onEdit={() => setIsOpen(true)}
-              refetch={refetch}
             />
           ))}
         </div>
