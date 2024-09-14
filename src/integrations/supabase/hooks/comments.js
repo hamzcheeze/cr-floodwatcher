@@ -7,30 +7,30 @@ const fromSupabase = async (query) => {
     return data;
 };
 
+/*
+### comments
+
+| name       | type                     | format | required |
+|------------|--------------------------|--------|----------|
+| id         | int8                     | number | true     |
+| created_at | timestamp with time zone | string | true     |
+| detail     | text                     | string | true     |
+| by         | text                     | string | false    |
+| reports_id | int8                     | number | true     |
+
+Foreign Key Relationships:
+- reports_id references flood_reports.id
+*/
+
 export const useComments = (reportId) => useQuery({
     queryKey: ['comments', reportId],
-    queryFn: () => fromSupabase(
-        supabase
-            .from('comments')
-            .select('*')
-            .eq('reports_id', reportId)
-            .order('created_at', { ascending: true })
-    ),
-    refetchInterval: 10000, // Refetch every 10 seconds
+    queryFn: () => fromSupabase(supabase.from('comments').select('*').eq('reports_id', reportId)),
 });
 
 export const useAddComment = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newComment) => fromSupabase(
-            supabase
-                .from('comments')
-                .insert([{ 
-                    detail: newComment.detail, 
-                    by: newComment.by, 
-                    reports_id: newComment.reports_id 
-                }])
-        ),
+        mutationFn: (newComment) => fromSupabase(supabase.from('comments').insert([newComment])),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries(['comments', variables.reports_id]);
         },
@@ -40,12 +40,7 @@ export const useAddComment = () => {
 export const useUpdateComment = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, ...updateData }) => fromSupabase(
-            supabase
-                .from('comments')
-                .update(updateData)
-                .eq('id', id)
-        ),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('comments').update(updateData).eq('id', id)),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries(['comments', variables.reports_id]);
         },
@@ -55,14 +50,9 @@ export const useUpdateComment = () => {
 export const useDeleteComment = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => fromSupabase(
-            supabase
-                .from('comments')
-                .delete()
-                .eq('id', id)
-        ),
+        mutationFn: (id) => fromSupabase(supabase.from('comments').delete().eq('id', id)),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries(['comments']);
+            queryClient.invalidateQueries(['comments', variables.reports_id]);
         },
     });
 };

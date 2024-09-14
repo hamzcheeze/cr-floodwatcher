@@ -9,11 +9,10 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, setGuestMode } = useAuth();
 
   const handleLogin = () => {
-    if (username === 'nickel' && password === 'lekcin') {
-      login('admin');
+    if (login(username, password)) {
       toast.success('Logged in as admin');
       navigate('/');
     } else {
@@ -22,7 +21,7 @@ const Login = () => {
   };
 
   const handleGuestMode = () => {
-    login('guest');
+    setGuestMode();
     navigate('/');
   };
 

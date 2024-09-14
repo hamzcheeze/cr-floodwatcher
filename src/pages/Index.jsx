@@ -21,7 +21,7 @@ const Index = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
 
-  const { data: floodReportsData, isLoading, error, refetch } = useFloodReports();
+  const { data: floodReports, isLoading, error, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
   const handleFileChange = (event) => {
@@ -30,15 +30,6 @@ const Index = () => {
 
   const uploadImage = async (file) => {
     try {
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets.some(bucket => bucket.name === 'flood-images');
-      
-      if (!bucketExists) {
-        console.error('Bucket "flood-images" does not exist');
-        toast.error('Image upload failed: Storage bucket not found');
-        return null;
-      }
-
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -55,12 +46,6 @@ const Index = () => {
         .from('flood-images')
         .getPublicUrl(fileName);
 
-      if (!data || !data.publicUrl) {
-        console.error('Error getting public URL');
-        toast.error('Error processing image');
-        return null;
-      }
-
       return data.publicUrl;
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -69,13 +54,13 @@ const Index = () => {
     }
   };
 
-  const handleAddNews = async () => {
+  const handleAddReport = async () => {
     if (newTitle && newContent && newLocation) {
       let imageUrl = null;
       if (selectedFile) {
         imageUrl = await uploadImage(selectedFile);
         if (!imageUrl) {
-          return; // Exit if image upload failed
+          return;
         }
       }
 
@@ -174,12 +159,12 @@ const Index = () => {
                 ref={fileInputRef}
                 placeholder="อัพโหลดรูปภาพ"
               />
-              <Button onClick={handleAddNews}>Report</Button>
+              <Button onClick={handleAddReport}>Report</Button>
             </div>
           </DialogContent>
         </Dialog>
         <div className="space-y-4">
-          {floodReportsData && floodReportsData.reports && floodReportsData.reports.map(report => (
+          {floodReports && floodReports.map(report => (
             <FloodReportItem
               key={report.id}
               report={report}

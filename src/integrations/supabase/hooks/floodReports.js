@@ -7,14 +7,25 @@ const fromSupabase = async (query) => {
     return data;
 };
 
+/*
+### flood_reports
+
+| name        | type                     | format    | required |
+|-------------|--------------------------|-----------|----------|
+| id          | int8                     | number    | true     |
+| created_at  | timestamp with time zone | string    | true     |
+| updated_at  | timestamp with time zone | string    | true     |
+| title       | text                     | string    | true     |
+| content     | text                     | string    | true     |
+| reported_by | text                     | string    | false    |
+| image_url   | text                     | string    | false    |
+| location    | text                     | string    | false    |
+
+*/
+
 export const useFloodReports = () => useQuery({
     queryKey: ['flood_reports'],
-    queryFn: async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        const reports = await fromSupabase(supabase.from('flood_reports').select('*').order('created_at', { ascending: false }));
-        const isAdmin = user && user.email === 'admin@example.com'; // Replace with your admin email
-        return { reports, isAdmin };
-    },
+    queryFn: () => fromSupabase(supabase.from('flood_reports').select('*')),
 });
 
 export const useFloodReport = (id) => useQuery({

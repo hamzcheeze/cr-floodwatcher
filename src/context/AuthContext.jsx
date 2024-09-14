@@ -12,9 +12,13 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (role) => {
-    setUserRole(role);
-    localStorage.setItem('userRole', role);
+  const login = (username, password) => {
+    if (username === 'nickel' && password === 'lekcin') {
+      setUserRole('admin');
+      localStorage.setItem('userRole', 'admin');
+      return true;
+    }
+    return false;
   };
 
   const logout = () => {
@@ -22,8 +26,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userRole');
   };
 
+  const setGuestMode = () => {
+    setUserRole('guest');
+    localStorage.setItem('userRole', 'guest');
+  };
+
   return (
-    <AuthContext.Provider value={{ userRole, login, logout }}>
+    <AuthContext.Provider value={{ userRole, login, logout, setGuestMode }}>
       {children}
     </AuthContext.Provider>
   );
