@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,9 +10,16 @@ const EditReportDialog = ({ report, onClose }) => {
   const [title, setTitle] = useState(report.title);
   const [content, setContent] = useState(report.content);
   const [reportedBy, setReportedBy] = useState(report.reported_by);
-  const [isOpen, setIsOpen] = useState(false);
+  const [location, setLocation] = useState(report.location);
 
   const updateFloodReportMutation = useUpdateFloodReport();
+
+  useEffect(() => {
+    setTitle(report.title);
+    setContent(report.content);
+    setReportedBy(report.reported_by);
+    setLocation(report.location);
+  }, [report]);
 
   const handleUpdate = () => {
     updateFloodReportMutation.mutate(
@@ -21,11 +28,11 @@ const EditReportDialog = ({ report, onClose }) => {
         title,
         content,
         reported_by: reportedBy,
+        location,
         updated_at: new Date().toISOString(),
       },
       {
         onSuccess: () => {
-          setIsOpen(false);
           onClose();
           toast.success('Report updated successfully');
         },
@@ -38,10 +45,7 @@ const EditReportDialog = ({ report, onClose }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Edit</Button>
-      </DialogTrigger>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Report</DialogTitle>
@@ -57,6 +61,12 @@ const EditReportDialog = ({ report, onClose }) => {
             placeholder="Content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
+          />
+          <Input
+            type="text"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
           />
           <Input
             type="text"

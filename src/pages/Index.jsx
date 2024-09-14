@@ -21,7 +21,7 @@ const Index = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
 
-  const { data: floodReports, isLoading, error } = useFloodReports();
+  const { data: floodReports, isLoading, error, refetch } = useFloodReports();
   const addFloodReportMutation = useAddFloodReport();
 
   const handleFileChange = (event) => {
@@ -173,8 +173,7 @@ const Index = () => {
             <FloodReportItem
               key={report.id}
               report={report}
-              onEdit={() => setIsOpen(true)}
-              refetch={() => {}} // This is no longer needed due to real-time updates
+              refetch={refetch}
             />
           ))}
         </div>

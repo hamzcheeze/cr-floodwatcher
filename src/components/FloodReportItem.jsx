@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import CommentSection from './CommentSection';
 import CommentForm from './CommentForm';
 import EditReportDialog from './EditReportDialog';
 import { useAuth } from '../context/AuthContext';
 
-const FloodReportItem = ({ report, onEdit, refetch }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+const FloodReportItem = ({ report, refetch }) => {
+  const [isEditing, setIsEditing] = useState(false);
   const { userRole } = useAuth();
+
+  const handleEditComplete = () => {
+    setIsEditing(false);
+    refetch();
+  };
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg">
@@ -26,12 +31,12 @@ const FloodReportItem = ({ report, onEdit, refetch }) => {
         {new Date(report.created_at).toLocaleString()}
       </p>
       {userRole === 'admin' && (
-        <Button onClick={() => setIsOpen(true)} className="mt-2 bg-yellow-500 hover:bg-yellow-600">
-          Edit Report
+        <Button onClick={() => setIsEditing(true)} className="mt-2 bg-yellow-500 hover:bg-yellow-600">
+          Edit
         </Button>
       )}
-      {isOpen && userRole === 'admin' && (
-        <EditReportDialog report={report} onClose={() => { setIsOpen(false); refetch(); }} />
+      {isEditing && userRole === 'admin' && (
+        <EditReportDialog report={report} onClose={handleEditComplete} />
       )}
       <CommentSection reportId={report.id} />
       <CommentForm reportId={report.id} />
